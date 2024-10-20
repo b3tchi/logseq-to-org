@@ -91,7 +91,7 @@ return files_header
 : {'item0': {'content': '', 'id': 'xx84dd1b'}, 'item1': {'content': '[[id:a084dd1b][item2]] [[id:6a89bfd6][item3]]', 'id': '97581db1'}, 'item2': {'content': 'jkl', 'id': 'a084dd1b'}, 'item3': {'content': '[[id:a084dd1b][item2]]', 'id': '6a89bfd6'}}
 
 ** parsing directory
-
+*** parsing pages directory
 #+begin_src python
 from pathlib import Path
 import os
@@ -111,6 +111,27 @@ return files
 
 #+RESULTS:
 : {'anything': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/pages/anything.md', 'ext': 'md'}, 'something': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/pages/something.md', 'ext': 'md'}}
+
+*** parsing journals directory
+#+begin_src python
+from pathlib import Path
+import os
+files = {}
+dir = Path(os.getcwd() + '/test/logseq-graph/journals')
+
+# get files
+for file in dir.iterdir():
+    files[file.stem] = {}
+    files[file.stem]['path'] = str(dir) + '/journals/' + file.name
+    files[file.stem]['ext'] = file.suffix.replace('.', '')
+    files[file.stem]['source'] = 'journals'
+
+return files
+
+#+end_src
+
+#+RESULTS:
+: {'2024_10_19': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/journals/journals/2024_10_19.md', 'ext': 'md', 'source': 'journals'}}
 
 *** adding uuid
 #+begin_src python
@@ -214,11 +235,13 @@ return pages_newname('test A',os.getcwd() + '/org-roam')
 #+begin_src python
 from init import main
 import os
-return os.getcwd() + '/test/rep'
+source_dir = os.getcwd() + '/test/logseq-graph'
+target_dir =  os.getcwd() + '/test/logseq-graph-result'
+return main(source_dir, target_dir)
 #+end_src
 
 #+RESULTS:
-: /home/jan/repos/b3tchi/logseq-to-org/main/test/rep
+: None
 
 * Recipe psudo-code works
 - list pages and journal to on dictionary

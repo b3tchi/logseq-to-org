@@ -40,6 +40,10 @@ def md_to_org(input_file):
         return None
 
 
+def journal_file_name(name):
+    """Make proper name of the journal."""
+
+
 def md_to_org_content(content):
     """Convert a logseq md file to org file using pandoc."""
     try:
@@ -88,15 +92,23 @@ def pages_newname(current_name, new_dir):
 def main(dir, new_dir):
     """Run main action to convert files."""
     files = {}
-    # dir = Path('/home/jan/notes-to-org/org')
 
-    # get files
-    for file in dir.iterdir():
+    # get pages
+    pages_dir = Path(dir + '/pages/')
+    for file in pages_dir.iterdir():
         if file.stem != 'contents':
             files[file.stem] = {}
             files[file.stem]['path'] = str(dir) + '/pages/' + file.name
             files[file.stem]['ext'] = file.suffix.replace('.', '')
             files[file.stem]['source'] = 'pages'
+
+    # get journals
+    journals_dir = Path(dir + '/journals/')
+    for file in journals_dir.iterdir():
+        files[file.stem] = {}
+        files[file.stem]['path'] = str(dir) + '/journals/' + file.name
+        files[file.stem]['ext'] = file.suffix.replace('.', '')
+        files[file.stem]['source'] = 'journals'
 
     files_uuid = {
         k: {**v, 'id': str(uuid.uuid4())}
@@ -131,8 +143,9 @@ def main(dir, new_dir):
     files_write = files_newname
 
     for k, new_file in files_write.items():
-        with open(new_file['new_path'], 'w', encoding='utf-8') as file:
-            file.write(new_file['content'])
+        if new_file['source'] == 'pages':
+            with open(new_file['new_path'], 'w', encoding='utf-8') as file:
+                file.write(new_file['content'])
 
 
 if __name__ == '__main__':
