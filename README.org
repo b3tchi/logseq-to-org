@@ -5,13 +5,14 @@ code quality is only for informational purpose just i would call it stackoverflo
 *** using file as source
 #+begin_src python
 from init import md_to_org
+import os
 
-input_file = '/home/jan/notes-to-org/org/pages/silvie.md'
+input_file = os.getcwd() + '/test/logseq-graph/pages/anything.md'
 return md_to_org(input_file)
 #+end_src
 
 #+RESULTS:
-: - ?? [[Hrac]]
+: - note to [[2024-10-19 Saturday]]
 *** using string as content
 
 #+begin_src python
@@ -30,13 +31,13 @@ return md_to_org_content(md_text)
 #+begin_src python
 import re
 
-ret = re.findall(r'\[\[([^\]]+)\]\]', '- [[Hrac]] [[silvie]] [[more words]]')
+ret = re.findall(r'\[\[([^\]]+)\]\]', '- [[Player]] [[Tom]] [[more words]]')
 
 return ret
 #+end_src
 
 #+RESULTS:
-| Hrac | silvie | more words |
+| Player | Tom | more words |
 
 *** using replace
 #+begin_src python
@@ -54,16 +55,16 @@ return ret
 #+begin_src python
 from init import convert_logseq_to_roam_link
 content = '''test
-- [[Hrac]]
-- [[Hrac]] [[silvie]]'''
-library = {'Hrac': '13456-1654','silvie': '35467-6841'}
+- [[Player]]
+- [[Player]] [[Tom]]'''
+library = {'Player': '13456-1654','Tom': '35467-6841'}
 return convert_logseq_to_roam_link(content, library)
 #+end_src
 
 #+RESULTS:
 : test
-: - [[id:13456-1654][Hrac]]
-: - [[id:13456-1654][Hrac]] [[id:35467-6841][silvie]]
+: - [[id:13456-1654][Player]]
+: - [[id:13456-1654][Player]] [[id:35467-6841][Tom]]
 
 *** test over dictionary
 #+begin_src python
@@ -149,20 +150,21 @@ return l[var]
 *** using pandoc to convert all markdowns to org files if needed
 using pandoc to covert markdown files to orgmode
 #+begin_src sh
-pandoc ~/notes-to-org/org/pages/silvie.md -f markdown_mmd -t org
+pandoc $PWD/test/logseq-graph/pages/anything.md -f markdown_mmd -t org
 #+end_src
 
 #+RESULTS:
-: - ?? [[Hrac]]
+: - note to [[2024-10-19 Saturday]]
 
 *** test function
 
 #+begin_src python
 import uuid
+import os
 from pathlib import Path
 from init import prepare_org_roam
 
-input_file = '/home/jan/notes-to-org/org/pages/silvie.md'
+input_file = os.getcwd() + '/test/logseq-graph/pages/anything.md'
 content = 'something to test'
 node_title = Path(input_file).stem
 node_id = (uuid.uuid4())  # generate item unique id
@@ -172,9 +174,9 @@ return prepare_org_roam(node_title, node_id, content)
 #+RESULTS:
 :
 :     :PROPERTIES:
-:     :ID:       9eef421e-5207-40e9-9469-764b8465aac4
+:     :ID:       09e928e6-318e-48c2-b14f-402257c3a12f
 :     :END:
-:     #+TITLE: silvie
+:     #+TITLE: anything
 :     something to test
 
 *** test for directory
