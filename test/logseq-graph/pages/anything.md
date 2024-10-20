@@ -1,0 +1,1 @@
+- note to [[2024-10-19 Saturday]]

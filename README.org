@@ -1,0 +1,231 @@
+* logseq-to-orgroam2 via python
+code quality is only for informational purpose just i would call it stackoverfloware
+
+** markdown to org
+*** using file as source
+#+begin_src python
+from init import md_to_org
+
+input_file = '/home/jan/notes-to-org/org/pages/silvie.md'
+return md_to_org(input_file)
+#+end_src
+
+#+RESULTS:
+: - ?? [[Hrac]]
+*** using string as content
+
+#+begin_src python
+from init import md_to_org_content
+
+md_text = '''test
+- [Hrac](https://abecs.url)
+'''
+return md_to_org_content(md_text)
+#+end_src
+
+#+RESULTS:
+: test - [[https://abecs.url][Hrac]]
+** convert org-roam links
+*** find links with regex
+#+begin_src python
+import re
+
+ret = re.findall(r'\[\[([^\]]+)\]\]', '- [[Hrac]] [[silvie]] [[more words]]')
+
+return ret
+#+end_src
+
+#+RESULTS:
+| Hrac | silvie | more words |
+
+*** using replace
+#+begin_src python
+ret = 'test'
+# ret = ret.replace('es', 'at')
+ret.replace('es', 'at')
+return ret
+#+end_src
+
+#+RESULTS:
+: test
+
+*** test function
+
+#+begin_src python
+from init import convert_logseq_to_roam_link
+content = '''test
+- [[Hrac]]
+- [[Hrac]] [[silvie]]'''
+library = {'Hrac': '13456-1654','silvie': '35467-6841'}
+return convert_logseq_to_roam_link(content, library)
+#+end_src
+
+#+RESULTS:
+: test
+: - [[id:13456-1654][Hrac]]
+: - [[id:13456-1654][Hrac]] [[id:35467-6841][silvie]]
+
+*** test over dictionary
+#+begin_src python
+from init import convert_logseq_to_roam_link
+
+files_org_content = {
+'item0': {'content': '', 'id': 'xx84dd1b'},
+'item1': {'content': '[[item2]] [[item3]]', 'id': '97581db1'},
+'item2': {'content': 'jkl', 'id': 'a084dd1b'},
+'item3': {'content': '[[item2]]', 'id': '6a89bfd6'}
+}
+
+library = {key: value['id'] for key, value in files_org_content.items()}
+
+files_header = {
+        k: {**v, 'content': convert_logseq_to_roam_link(v['content'], library)}
+        for k, v in files_org_content.items()}
+
+# return library
+return files_header
+#+end_src
+
+#+RESULTS:
+: {'item0': {'content': '', 'id': 'xx84dd1b'}, 'item1': {'content': '[[id:a084dd1b][item2]] [[id:6a89bfd6][item3]]', 'id': '97581db1'}, 'item2': {'content': 'jkl', 'id': 'a084dd1b'}, 'item3': {'content': '[[id:a084dd1b][item2]]', 'id': '6a89bfd6'}}
+
+** parsing directory
+
+#+begin_src python
+from pathlib import Path
+import os
+files = {}
+dir = Path(os.getcwd() + '/test/logseq-graph/pages')
+
+# get files
+for file in dir.iterdir():
+    if file.stem != 'contents':
+        files[file.stem] = {}
+        files[file.stem]['path'] = str(dir) + '/' + file.name
+        files[file.stem]['ext'] = file.suffix.replace('.', '')
+
+return files
+
+#+end_src
+
+#+RESULTS:
+: {'anything': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/pages/anything.md', 'ext': 'md'}, 'something': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/pages/something.md', 'ext': 'md'}}
+
+*** adding uuid
+#+begin_src python
+import uuid
+
+# Original dictionary
+data = {
+    'item1': {'item_name': 'abc', 'item_ext': 'def'},
+    'item2': {'item_name': 'ghi', 'item_ext': 'jkl'},
+    'item3': {'item_name': 'mno', 'item_ext': 'pqr'}
+}
+
+new_data = {key: {**value, 'id': str(uuid.uuid4())}
+             for key, value in data.items()}
+
+return new_data
+
+#+end_src
+
+#+RESULTS:
+: y
+
+*** work with dictionary
+#+begin_src python
+
+l = {'a':1, 'b':2}
+
+var = 'b'
+return l[var]
+
+#+end_src
+
+#+RESULTS:
+: 2
+
+** org content
+*** using pandoc to convert all markdowns to org files if needed
+using pandoc to covert markdown files to orgmode
+#+begin_src sh
+pandoc ~/notes-to-org/org/pages/silvie.md -f markdown_mmd -t org
+#+end_src
+
+#+RESULTS:
+: - ?? [[Hrac]]
+
+*** test function
+
+#+begin_src python
+import uuid
+from pathlib import Path
+from init import prepare_org_roam
+
+input_file = '/home/jan/notes-to-org/org/pages/silvie.md'
+content = 'something to test'
+node_title = Path(input_file).stem
+node_id = (uuid.uuid4())  # generate item unique id
+return prepare_org_roam(node_title, node_id, content)
+#+end_src
+
+#+RESULTS:
+:
+:     :PROPERTIES:
+:     :ID:       9eef421e-5207-40e9-9469-764b8465aac4
+:     :END:
+:     #+TITLE: silvie
+:     something to test
+
+*** test for directory
+#+begin_src python
+from init import prepare_org_roam
+
+files_org_content = {
+'item1': {'content': '[[item2]] [[item3]]', 'id': '97581db1'},
+'item2': {'content': 'jkl', 'id': 'a084dd1b'},
+'item3': {'content': '[[item2]]', 'id': '6a89bfd6'}
+}
+
+files_header = {
+        k: {**v, 'content': prepare_org_roam(k, v['id'], v['content'])}
+        for k, v in files_org_content.items()}
+
+return files_header
+#+end_src
+
+#+RESULTS:
+: {'item1': {'content': '\n    :PROPERTIES:\n    :ID:       97581db1\n    :END:\n    #+TITLE: item1\n    [[item2]] [[item3]]', 'id': '97581db1'}, 'item2': {'content': '\n    :PROPERTIES:\n    :ID:       a084dd1b\n    :END:\n    #+TITLE: item2\n    jkl', 'id': 'a084dd1b'}, 'item3': {'content': '\n    :PROPERTIES:\n    :ID:       6a89bfd6\n    :END:\n    #+TITLE: item3\n    [[item2]]', 'id': '6a89bfd6'}}
+
+** new name
+#+begin_src python
+from init import pages_newname
+import os
+return pages_newname('test A',os.getcwd() + '/org-roam')
+#+end_src
+
+#+RESULTS:
+: /home/jan/repos/b3tchi/logseq-to-org/main/org-roam/20241019091010-test_a.org
+
+** running over test graph
+
+#+begin_src python
+from init import main
+import os
+return os.getcwd() + '/test/rep'
+#+end_src
+
+#+RESULTS:
+: /home/jan/repos/b3tchi/logseq-to-org/main/test/rep
+
+* Recipe psudo-code works
+- list pages and journal to on dictionary
+- load content to dictionary
+- covert all md files to org via pandoc
+- add id to all files
+  - +variant-a ids via org-roam `(org-id-store-link)`+
+  - variant-b via code custom id
+- add roam properies and title according to orginal file name
+- parse all content for ids and replace links with roam variant
+- write all files to target location
+- sync database `org-roam-db-sync`

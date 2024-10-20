@@ -1,0 +1,2 @@
+- new note
+- note to [[anything]]
