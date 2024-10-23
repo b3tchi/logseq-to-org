@@ -113,7 +113,7 @@ return main(source_dir)
 #+end_src
 
 #+RESULTS:
-: None
+: /home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph-2024102315351729690500
 
 ** journal name
 #+begin_src python

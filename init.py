@@ -7,19 +7,21 @@ import uuid
 import subprocess
 import datetime
 from pathlib import Path
+from textwrap import dedent
 import os
 import re
 
 
 def prepare_org_roam(node_title, node_id, content):
     """Make header."""
-    properties_header = f"""
+    properties_header = dedent(f"""
     :PROPERTIES:
     :ID:       {node_id}
     :END:
     #+TITLE: {node_title}
-    """
-    return properties_header + content
+    """).strip("\n")
+
+    return properties_header + "\n" + content
 
 
 def md_to_org(input_file):
@@ -99,7 +101,7 @@ def pages_newname(current_name, new_dir):
 
 def journals_newname(current_name, new_dir):
     """Create new file name for journal."""
-    name = str(current_name)[:11]
+    name = str(current_name)[:10]
     return f'{new_dir}/{name}.org'
 
 
@@ -122,7 +124,7 @@ def main(dir):
     # get journals
     journals_dir = Path(dir + '/journals/')
     for file in journals_dir.iterdir():
-        name = file.stem
+        name = journal_name(file.stem)
         files[name] = {}
         files[name]['path'] = str(dir) + '/journals/' + file.name
         files[name]['ext'] = file.suffix.replace('.', '')
@@ -157,19 +159,19 @@ def main(dir):
         if v['source'] == 'pages'}
 
     journal_newname = {
-        k: {**v, 'new_path': journals_newname(k, write_dir + '/journals/')}
-        for k, v in page_newname.items()
+        k: {**v, 'new_path': journals_newname(k, write_dir + '/journals')}
+        for k, v in files_interlink.items()
         if v['source'] == 'journals'}
 
-    files_write = journal_newname
+    # merging dictionary operator 3.9+
+    files_write = page_newname | journal_newname
 
     os.mkdir(write_dir)
     os.mkdir(write_dir + '/journals/')
 
     for k, new_file in files_write.items():
-        if new_file['source'] == 'pages':
-            with open(new_file['new_path'], 'w', encoding='utf-8') as file:
-                file.write(new_file['content'])
+        with open(new_file['new_path'], 'w', encoding='utf-8') as file:
+            file.write(new_file['content'])
 
     return write_dir
 
