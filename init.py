@@ -7,6 +7,7 @@ import uuid
 import subprocess
 import datetime
 from pathlib import Path
+import os
 import re
 
 
@@ -40,8 +41,15 @@ def md_to_org(input_file):
         return None
 
 
-def journal_file_name(name):
+def journal_name(name):
     """Make proper name of the journal."""
+    name_parts = name.split('_')
+    journal_date = datetime.datetime(
+        int(name_parts[0]),
+        int(name_parts[1]),
+        int(name_parts[2]))
+
+    return f'{journal_date:%Y-%m-%d %A}'
 
 
 def md_to_org_content(content):
@@ -83,32 +91,42 @@ def add_content(entry):
 
 
 def pages_newname(current_name, new_dir):
-    """Create new file name."""
+    """Create new file name for pages."""
     name = current_name.lower().replace(' ', '_')
     now = datetime.datetime.now()
     return f'{new_dir}/{now:%Y%m%d%H%M%S}-{name}.org'
 
 
-def main(dir, new_dir):
+def journals_newname(current_name, new_dir):
+    """Create new file name for journal."""
+    name = str(current_name)[:11]
+    return f'{new_dir}/{name}.org'
+
+
+def main(dir):
     """Run main action to convert files."""
+    write_time = datetime.datetime.now()
+    write_dir = f'{dir}-{write_time:%Y%m%d%H%M%s}'
     files = {}
 
     # get pages
     pages_dir = Path(dir + '/pages/')
     for file in pages_dir.iterdir():
-        if file.stem != 'contents':
-            files[file.stem] = {}
-            files[file.stem]['path'] = str(dir) + '/pages/' + file.name
-            files[file.stem]['ext'] = file.suffix.replace('.', '')
-            files[file.stem]['source'] = 'pages'
+        name = file.stem
+        if name != 'contents':
+            files[name] = {}
+            files[name]['path'] = str(dir) + '/pages/' + file.name
+            files[name]['ext'] = file.suffix.replace('.', '')
+            files[name]['source'] = 'pages'
 
     # get journals
     journals_dir = Path(dir + '/journals/')
     for file in journals_dir.iterdir():
-        files[file.stem] = {}
-        files[file.stem]['path'] = str(dir) + '/journals/' + file.name
-        files[file.stem]['ext'] = file.suffix.replace('.', '')
-        files[file.stem]['source'] = 'journals'
+        name = file.stem
+        files[name] = {}
+        files[name]['path'] = str(dir) + '/journals/' + file.name
+        files[name]['ext'] = file.suffix.replace('.', '')
+        files[name]['source'] = 'journals'
 
     files_uuid = {
         k: {**v, 'id': str(uuid.uuid4())}
@@ -133,20 +151,34 @@ def main(dir, new_dir):
         k: {**v, 'content': convert_logseq_to_roam_link(v['content'], library)}
         for k, v in files_header.items()}
 
-    # new_dir = '/home/jan/notes-to-org/_converted'
-
-    files_newname = {
-        k: {**v, 'new_path': pages_newname(k, new_dir)}
+    page_newname = {
+        k: {**v, 'new_path': pages_newname(k, write_dir)}
         for k, v in files_interlink.items()
         if v['source'] == 'pages'}
 
-    files_write = files_newname
+    journal_newname = {
+        k: {**v, 'new_path': journals_newname(k, write_dir + '/journals/')}
+        for k, v in page_newname.items()
+        if v['source'] == 'journals'}
+
+    files_write = journal_newname
+
+    os.mkdir(write_dir)
+    os.mkdir(write_dir + '/journals/')
 
     for k, new_file in files_write.items():
         if new_file['source'] == 'pages':
             with open(new_file['new_path'], 'w', encoding='utf-8') as file:
                 file.write(new_file['content'])
 
+    return write_dir
+
 
 if __name__ == '__main__':
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1])
+
+
+# assistencni sluzba gorenje
+# 800 105 505
+# electro solid
+# 603 450 444

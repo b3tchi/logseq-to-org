@@ -53,133 +53,6 @@ return ret
 *** test function
 
 #+begin_src python
-from init import convert_logseq_to_roam_link
-content = '''test
-- [[Player]]
-- [[Player]] [[Tom]]'''
-library = {'Player': '13456-1654','Tom': '35467-6841'}
-return convert_logseq_to_roam_link(content, library)
-#+end_src
-
-#+RESULTS:
-: test
-: - [[id:13456-1654][Player]]
-: - [[id:13456-1654][Player]] [[id:35467-6841][Tom]]
-
-*** test over dictionary
-#+begin_src python
-from init import convert_logseq_to_roam_link
-
-files_org_content = {
-'item0': {'content': '', 'id': 'xx84dd1b'},
-'item1': {'content': '[[item2]] [[item3]]', 'id': '97581db1'},
-'item2': {'content': 'jkl', 'id': 'a084dd1b'},
-'item3': {'content': '[[item2]]', 'id': '6a89bfd6'}
-}
-
-library = {key: value['id'] for key, value in files_org_content.items()}
-
-files_header = {
-        k: {**v, 'content': convert_logseq_to_roam_link(v['content'], library)}
-        for k, v in files_org_content.items()}
-
-# return library
-return files_header
-#+end_src
-
-#+RESULTS:
-: {'item0': {'content': '', 'id': 'xx84dd1b'}, 'item1': {'content': '[[id:a084dd1b][item2]] [[id:6a89bfd6][item3]]', 'id': '97581db1'}, 'item2': {'content': 'jkl', 'id': 'a084dd1b'}, 'item3': {'content': '[[id:a084dd1b][item2]]', 'id': '6a89bfd6'}}
-
-** parsing directory
-*** parsing pages directory
-#+begin_src python
-from pathlib import Path
-import os
-files = {}
-dir = Path(os.getcwd() + '/test/logseq-graph/pages')
-
-# get files
-for file in dir.iterdir():
-    if file.stem != 'contents':
-        files[file.stem] = {}
-        files[file.stem]['path'] = str(dir) + '/' + file.name
-        files[file.stem]['ext'] = file.suffix.replace('.', '')
-
-return files
-
-#+end_src
-
-#+RESULTS:
-: {'anything': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/pages/anything.md', 'ext': 'md'}, 'something': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/pages/something.md', 'ext': 'md'}}
-
-*** parsing journals directory
-#+begin_src python
-from pathlib import Path
-import os
-files = {}
-dir = Path(os.getcwd() + '/test/logseq-graph/journals')
-
-# get files
-for file in dir.iterdir():
-    files[file.stem] = {}
-    files[file.stem]['path'] = str(dir) + '/journals/' + file.name
-    files[file.stem]['ext'] = file.suffix.replace('.', '')
-    files[file.stem]['source'] = 'journals'
-
-return files
-
-#+end_src
-
-#+RESULTS:
-: {'2024_10_19': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/journals/journals/2024_10_19.md', 'ext': 'md', 'source': 'journals'}}
-
-*** adding uuid
-#+begin_src python
-import uuid
-
-# Original dictionary
-data = {
-    'item1': {'item_name': 'abc', 'item_ext': 'def'},
-    'item2': {'item_name': 'ghi', 'item_ext': 'jkl'},
-    'item3': {'item_name': 'mno', 'item_ext': 'pqr'}
-}
-
-new_data = {key: {**value, 'id': str(uuid.uuid4())}
-             for key, value in data.items()}
-
-return new_data
-
-#+end_src
-
-#+RESULTS:
-: y
-
-*** work with dictionary
-#+begin_src python
-
-l = {'a':1, 'b':2}
-
-var = 'b'
-return l[var]
-
-#+end_src
-
-#+RESULTS:
-: 2
-
-** org content
-*** using pandoc to convert all markdowns to org files if needed
-using pandoc to covert markdown files to orgmode
-#+begin_src sh
-pandoc $PWD/test/logseq-graph/pages/anything.md -f markdown_mmd -t org
-#+end_src
-
-#+RESULTS:
-: - note to [[2024-10-19 Saturday]]
-
-*** test function
-
-#+begin_src python
 import uuid
 import os
 from pathlib import Path
@@ -220,7 +93,7 @@ return files_header
 #+RESULTS:
 : {'item1': {'content': '\n    :PROPERTIES:\n    :ID:       97581db1\n    :END:\n    #+TITLE: item1\n    [[item2]] [[item3]]', 'id': '97581db1'}, 'item2': {'content': '\n    :PROPERTIES:\n    :ID:       a084dd1b\n    :END:\n    #+TITLE: item2\n    jkl', 'id': 'a084dd1b'}, 'item3': {'content': '\n    :PROPERTIES:\n    :ID:       6a89bfd6\n    :END:\n    #+TITLE: item3\n    [[item2]]', 'id': '6a89bfd6'}}
 
-** new name
+** new file name
 #+begin_src python
 from init import pages_newname
 import os
@@ -236,12 +109,46 @@ return pages_newname('test A',os.getcwd() + '/org-roam')
 from init import main
 import os
 source_dir = os.getcwd() + '/test/logseq-graph'
-target_dir =  os.getcwd() + '/test/logseq-graph-result'
-return main(source_dir, target_dir)
+return main(source_dir)
 #+end_src
 
 #+RESULTS:
 : None
+
+** journal name
+#+begin_src python
+from init import journal_name
+original_name = '2024_10_12'
+return (journal_name(original_name))
+#+end_src
+
+#+RESULTS:
+: 2024-10-12 Saturday
+
+#+begin_src python
+return str('2024-10-12 Saturday')[:11]
+#+end_src
+#+RESULTS:
+: 2024-10-12
+
+#+begin_src python
+import os
+from pathlib import Path
+from init import journal_name
+# get journals
+files = {}
+journals_dir = Path(os.getcwd() + '/test/logseq-graph/journals/')
+for file in journals_dir.iterdir():
+    name = journal_name(file.stem)
+    files[name] = {}
+    files[name]['path'] = str(journals_dir) + '/' +file.name
+    files[name]['ext'] = file.suffix.replace('.', '')
+    files[name]['source'] = 'journals'
+return files
+#+end_src
+
+#+RESULTS:
+: {'2024-10-19 Saturday': {'path': '/home/jan/repos/b3tchi/logseq-to-org/main/test/logseq-graph/journals/2024_10_19.md', 'ext': 'md', 'source': 'journals'}}
 
 * Recipe psudo-code works
 - list pages and journal to on dictionary
